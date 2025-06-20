@@ -46,9 +46,11 @@ class mainDashboard {
         }
 
         JFrame mainDashboardWindow = new JFrame("MakeDo - Dashboard");
-        mainDashboardWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //mainDashboardWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
         mainDashboardWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        mainDashboardWindow.setLocationRelativeTo(null);
         mainDashboardWindow.setLayout(new FlowLayout());
+        mainDashboardWindow.setSize(1000, 650);
 
         JPanel mainDash = new JPanel(new FlowLayout(FlowLayout.LEFT, 7, 5));
         JPanel mainSubPanel = new JPanel();
