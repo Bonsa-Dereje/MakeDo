@@ -1,0 +1,24 @@
+<script >
+	import { enhance } from '$app/forms';
+	
+	let { form } = $props();
+</script>
+
+<h1>Login</h1>
+<form method="post" action="?/signInEmail" use:enhance>
+	<label>
+		Email
+		<input type="email" name="email" />
+	</label>
+	<label>
+		Password
+		<input type="password" name="password" />
+	</label>
+	<label>
+		Name (for registration)
+		<input name="name" />
+	</label>
+	<button>Login</button>
+	<button formaction="?/signUpEmail">Register</button>
+</form>
+<p style="color: red">{form?.message ?? ''}</p>
