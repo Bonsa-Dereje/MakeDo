@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MakeDo — Find Your Laptop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FFFFFF;--bg2:#F5F5F5;--bg3:#EFEFEF;--bg4:#E8E8E8;
+  --accent:#FF6B00;--accent2:#FF9040;--green:#16A34A;--amber:#FF6B00;--red:#EF4444;
+  --text:#111111;--text2:#555555;--text3:#999999;
+  --border:#E0E0E0;--border2:#BBBBBB;
+  --r4:2px;--r8:2px;--r12:4px;--r16:4px;--r24:4px;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-display:'Space Grotesk',sans-serif;
+}
+body{background:#ffffff;color:var(--text);font-family:var(--font-display);font-weight:300;min-height:100vh;overflow-x:hidden;background-image:radial-gradient(circle,rgba(0,0,0,0.1) 1px,transparent 1px);background-size:24px 24px}
+h1,h2,h3,h4{font-family:var(--font-mono);font-weight:700}
+
+.dot-bg{
+  background-image:radial-gradient(circle,rgba(255,255,255,0.07) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid #e0e0e0;background:rgba(255,255,255,.95);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.logo{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--text);letter-spacing:.2em;text-transform:uppercase}
+.logo span{color:var(--accent)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.upgrade-bar-btn{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:rgba(255,107,0,.08);border:1px solid rgba(255,107,0,.3);border-radius:2px;padding:8px 16px;cursor:pointer;transition:all .2s}
+.upgrade-bar-btn:hover{background:rgba(255,107,0,.15);border-color:var(--accent)}
+.city-selector{display:flex;align-items:center;gap:8px;background:transparent;border:1px solid #d0d0d0;border-radius:2px;padding:8px 14px;cursor:pointer;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);transition:border-color .2s}
+.city-selector:hover{border-color:#999}
+.city-selector svg{width:14px;height:14px;flex-shrink:0}
+.city-dot{width:6px;height:6px;background:var(--green);border-radius:50%}
+.city-dropdown{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid #e0e0e0;border-radius:2px;overflow:hidden;z-index:200;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.city-option{padding:10px 16px;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:space-between}
+.city-option:hover{background:#f5f5f5}
+.city-option.active{color:var(--accent)}
+.free-tag{font-size:9px;font-family:var(--font-mono);font-weight:600;letter-spacing:.08em;background:rgba(34,197,94,.1);color:var(--green);padding:2px 7px;border-radius:2px;border:1px solid rgba(34,197,94,.2)}
+.relative{position:relative}
+
+.hero{
+  padding:48px 32px 40px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero-inner{max-width:560px;margin:0 auto;position:relative;z-index:1}
+.hero-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.hero-title{
+  font-family:var(--font-mono);
+  font-size:clamp(22px,3.2vw,36px);
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  line-height:1.25;
+  color:var(--text);
+}
+.hero-title .q{color:var(--accent)}
+.hero-sub{margin-top:12px;font-size:14px;font-weight:300;color:var(--text2);max-width:380px;margin-left:auto;margin-right:auto;font-family:var(--font-display);line-height:1.6}
+.hero-btns{display:flex;align-items:center;gap:10px;margin-top:28px;flex-wrap:wrap;justify-content:center}
+.arrow-btn{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#000;border:none;border-radius:2px;padding:12px 24px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:transform .2s,background .2s}
+.arrow-btn:hover{background:var(--accent2);transform:translateY(-2px)}
+.arrow-btn svg{width:14px;height:14px}
+.upgrade-hero-btn{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text);border:1px solid rgba(0,0,0,.2);border-radius:2px;padding:12px 24px;font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.upgrade-hero-btn:hover{border-color:rgba(0,0,0,.5);background:rgba(0,0,0,.04)}
+
+/* ── SUPABASE LISTINGS SECTION ── */
+.sb-section{max-width:1240px;margin:0 auto;padding:0 32px 48px;position:relative;z-index:1}
+.sb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sb-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+.sb-count{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:#e8e8e8;border:1px solid #e0e0e0;border-radius:2px;overflow:hidden}
+.sb-card{background:#fff;padding:0;cursor:pointer;transition:background .15s;position:relative;display:flex;flex-direction:column}
+.sb-card:hover{background:#f9f9f9}
+.sb-img{height:160px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-bottom:1px solid #e8e8e8;position:relative;overflow:hidden}
+.sb-img img{width:100%;height:100%;object-fit:cover}
+.sb-img-badge{position:absolute;top:10px;left:10px;font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,107,0,.9);color:#fff;padding:3px 8px;border-radius:2px}
+.sb-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:6px}
+.sb-brand{font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3)}
+.sb-name{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text);line-height:1.4;flex:1}
+.sb-specs{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.sb-spec{font-family:var(--font-mono);font-size:8px;letter-spacing:.04em;color:var(--text3);background:#f0f0f0;border:1px solid #e0e0e0;padding:2px 6px;border-radius:2px}
+.sb-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 14px;border-top:1px solid #e8e8e8;margin-top:auto}
+.sb-price{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text)}
+.sb-live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;flex-shrink:0}
+.sb-loading{padding:32px;text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.sb-error{padding:20px;font-family:var(--font-mono);font-size:11px;color:var(--red);letter-spacing:.08em}
+
+.picks-section{max-width:1240px;margin:0 auto;padding:0 32px 48px;position:relative;z-index:1}
+.picks-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.picks-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3)}
+.picks-count{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+
+.picks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:#e8e8e8;border:1px solid #e0e0e0;border-radius:2px;overflow:hidden}
+.pick-card{background:#fff;padding:0;cursor:pointer;transition:background .15s;position:relative;display:flex;flex-direction:column}
+.pick-card:hover{background:#f9f9f9}
+.pick-img{height:140px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-bottom:1px solid #e8e8e8;position:relative}
+.pick-badge-hot{position:absolute;top:10px;left:10px;font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,107,0,.12);color:var(--accent);border:1px solid rgba(255,107,0,.3);padding:3px 8px;border-radius:2px}
+.pick-free-pill{position:absolute;top:10px;right:10px;font-family:var(--font-mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);padding:3px 8px;border-radius:2px}
+.pick-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:6px}
+.pick-brand{font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3)}
+.pick-name{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text);line-height:1.4;flex:1}
+.pick-specs{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.pick-spec{font-family:var(--font-mono);font-size:8px;letter-spacing:.04em;color:var(--text3);background:#f0f0f0;border:1px solid #e0e0e0;padding:2px 6px;border-radius:2px}
+.pick-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 14px;border-top:1px solid #e8e8e8;margin-top:auto}
+.pick-price{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text)}
+.pick-add{background:transparent;border:1px solid #d0d0d0;border-radius:2px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .15s;font-size:16px;line-height:1}
+.pick-add:hover{border-color:var(--accent);color:var(--accent)}
+
+.section-divider{width:100%;height:1px;background:#1a1a1a;max-width:1240px;margin:0 auto 32px;padding:0 32px}
+.section-divider-inner{width:100%;height:1px;background:#f5f5f5}
+
+.filter-panel{background:#f5f5f5;border-bottom:1px solid #e0e0e0;padding:28px 32px;display:none}
+.filter-panel.open{display:block}
+.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto}
+.filter-label{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}
+.dept-btn{background:transparent;border:1px solid #ddd;border-radius:2px;padding:10px 14px;font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--text2);cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:8px}
+.dept-btn:hover{border-color:#aaa;color:var(--text)}
+.dept-btn.active{background:rgba(255,107,0,.08);border-color:var(--accent);color:var(--accent)}
+.dept-icon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.dept-icon svg{width:18px;height:18px}
+.app-pill{display:flex;align-items:center;gap:6px}
+.app-icon{width:16px;height:16px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.app-icon img{width:16px;height:16px;object-fit:contain;border-radius:3px}
+.app-icon svg{width:16px;height:16px}
+.apps-grid{display:flex;flex-wrap:wrap;gap:6px}
+.app-pill{background:transparent;border:1px solid #ddd;border-radius:2px;padding:5px 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--text2);cursor:pointer;transition:all .15s}
+.app-pill:hover{border-color:#aaa;color:var(--text)}
+.app-pill.active{background:rgba(255,107,0,.08);border-color:var(--accent);color:var(--accent)}
+.apply-btn{margin-top:24px;background:#111111;color:#fff;border:none;border-radius:2px;padding:12px 28px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;display:block;margin-left:auto}
+.apply-btn:hover{background:#ddd}
+
+.results-section{padding:40px 32px;max-width:1300px;margin:0 auto}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.results-title{font-family:var(--font-mono);font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.results-count{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:4px}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+
+.product-card{background:#fff;border:1px solid #e0e0e0;border-radius:2px;overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;position:relative}
+.product-card:hover{border-color:#aaa;transform:translateY(-2px)}
+.card-img{height:180px;background:#f5f5f5;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.badge{position:absolute;top:12px;left:12px;border-radius:2px;padding:4px 10px;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.badge.perfect{background:transparent;color:#F8F8F8;border:1px solid #F8F8F8}
+.badge.good{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.badge.usable{background:transparent;color:#666;border:1px solid #444}
+.badge.unrated{background:transparent;color:#444;border:1px solid #2a2a2a}
+.free-delivery{position:absolute;top:12px;right:12px;background:transparent;color:var(--green);border:1px solid rgba(34,197,94,.3);border-radius:2px;padding:3px 8px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.card-body{padding:18px}
+.card-brand{font-family:var(--font-mono);font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.18em;margin-bottom:6px}
+.card-name{font-family:var(--font-mono);font-size:14px;font-weight:600;margin-bottom:12px;line-height:1.4;color:var(--text)}
+.card-specs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px}
+.spec-pill{background:transparent;border:1px solid #ddd;border-radius:2px;padding:3px 8px;font-family:var(--font-mono);font-size:9px;letter-spacing:.06em;color:var(--text3)}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.price{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--text)}
+.price-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;color:var(--text3);margin-top:3px;text-transform:uppercase}
+.view-btn{background:transparent;border:1px solid #d0d0d0;border-radius:2px;padding:8px 14px;font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);cursor:pointer;transition:all .15s}
+.view-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.product-page{display:none;padding:0 0 60px}
+.product-page.open{display:block}
+.back-btn{display:inline-flex;align-items:center;gap:8px;padding:32px 32px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:color .15s;background:none;border:none}
+.back-btn:hover{color:var(--text)}
+.product-detail{max-width:1100px;margin:0 auto;padding:0 32px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.product-visual{background:#f5f5f5;border:1px solid #e0e0e0;border-radius:2px;padding:40px;display:flex;align-items:center;justify-content:center;position:relative;min-height:360px}
+.ar-badge{position:absolute;bottom:16px;right:16px;background:rgba(255,107,0,.06);border:1px solid rgba(255,107,0,.25);border-radius:2px;padding:7px 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px}
+.big-laptop{width:200px;height:150px}
+.product-info .card-brand{font-size:10px;margin-bottom:6px}
+.product-info h1{font-family:var(--font-mono);font-size:26px;font-weight:700;line-height:1.3;margin-bottom:16px;letter-spacing:.05em;text-transform:uppercase}
+.big-price{font-family:var(--font-mono);font-size:32px;font-weight:700;color:var(--text);margin-bottom:4px}
+.delivery-row{display:flex;align-items:center;gap:10px;margin-bottom:24px;padding:12px 16px;background:#0a0a0a;border:1px solid #e8e8e8;border-radius:2px}
+.delivery-row svg{width:16px;height:16px}
+.specs-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.specs-table td{padding:10px 0;border-bottom:1px solid #e8e8e8;font-size:13px;font-family:var(--font-display);font-weight:300}
+.specs-table td:first-child{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);width:40%}
+.specs-table td:last-child{color:var(--text)}
+.actions{display:flex;flex-direction:column;gap:10px}
+.buy-btn{background:#111111;color:#fff;border:none;border-radius:2px;padding:16px;font-family:var(--font-mono);font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.buy-btn:hover{background:#333}
+.try-btn{background:transparent;color:var(--accent);border:1px solid rgba(255,107,0,.35);border-radius:2px;padding:14px;font-family:var(--font-mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.try-btn:hover{background:rgba(255,107,0,.06);border-color:var(--accent)}
+
+.ar-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:300;align-items:center;justify-content:center}
+.ar-modal-bg.show{display:flex}
+.ar-modal{background:#fff;border:1px solid #ddd;border-radius:2px;padding:40px;max-width:440px;width:90%;text-align:center}
+.ar-icon{width:64px;height:64px;background:rgba(255,107,0,.06);border:1px solid rgba(255,107,0,.2);border-radius:2px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.ar-modal h3{font-family:var(--font-mono);font-size:18px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.ar-modal p{color:var(--text2);font-size:14px;font-weight:300;margin-bottom:20px;line-height:1.7}
+.ar-close{background:transparent;color:var(--text2);border:1px solid #d0d0d0;border-radius:2px;padding:10px 24px;cursor:pointer;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+
+.perf-section{max-width:1100px;margin:20px auto 0;padding:0 32px}
+.perf-card{background:#f5f5f5;border:1px solid #e8e8e8;border-radius:2px;padding:20px 24px}
+.perf-title{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.perf-bars{display:flex;flex-direction:column;gap:10px}
+.perf-row{display:flex;align-items:center;gap:12px}
+.perf-row-label{width:140px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--text2);flex-shrink:0}
+.perf-bar-bg{flex:1;height:3px;background:#e8e8e8;overflow:hidden}
+.perf-bar-fill{height:100%;transition:width .8s ease}
+.perf-bar-fill.perfect{background:#fff}
+.perf-bar-fill.good{background:var(--accent)}
+.perf-bar-fill.usable{background:#ccc}
+.perf-val{width:36px;text-align:right;font-family:var(--font-mono);font-weight:700;font-size:11px}
+
+.upgrade-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;align-items:center;justify-content:center}
+.upgrade-modal-bg.show{display:flex}
+.upgrade-modal{background:#f0f0f0;border:1px solid #e0e0e0;border-radius:2px;padding:48px;max-width:520px;width:90%}
+.upgrade-modal-header{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:16px}
+.upgrade-modal h2{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.3;margin-bottom:16px}
+.upgrade-modal h2 span{color:var(--accent)}
+.upgrade-modal p{font-weight:300;font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:28px}
+.upgrade-steps{display:flex;flex-direction:column;gap:0;margin-bottom:32px;border:1px solid #e8e8e8}
+.upgrade-step{display:flex;align-items:flex-start;gap:16px;padding:16px;border-bottom:1px solid #e8e8e8}
+.upgrade-step:last-child{border-bottom:none}
+.step-num{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent);width:20px;flex-shrink:0;padding-top:1px}
+.step-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.step-desc{font-size:12px;font-weight:300;color:var(--text3);line-height:1.5}
+.upgrade-modal-btns{display:flex;gap:10px}
+.download-btn{flex:1;background:var(--accent);color:#000;border:none;border-radius:2px;padding:14px;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.download-btn:hover{background:var(--accent2)}
+.upgrade-close{background:transparent;color:var(--text3);border:1px solid #d0d0d0;border-radius:2px;padding:14px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+
+@keyframes fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fade-up .35s ease both}
+
+@media(max-width:700px){
+  .product-detail{grid-template-columns:1fr}
+  .filter-grid{grid-template-columns:1fr}
+  .topbar{padding:12px 16px}
+  .results-section{padding:24px 16px}
+  .hero{padding:36px 20px 28px}
+  .picks-section{padding:0 16px 36px}
+  .sb-section{padding:0 16px 36px}
+  .picks-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .sb-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">MAKE<span>DO</span></div>
+  <div class="topbar-right">
+    <button class="upgrade-bar-btn" onclick="document.getElementById('upgradeModal').classList.add('show')">↑ Upgrade your current PC</button>
+    <div class="relative">
+      <div class="city-selector" id="cityTrigger" onclick="toggleCity()">
+        <div class="city-dot"></div>
+        <span id="cityLabel">Select city</span>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+      </div>
+      <div class="city-dropdown" id="cityDropdown" style="display:none"></div>
+    </div>
+  </div>
+</header>
+
+<section class="hero dot-bg" id="heroSection">
+  <div class="hero-inner">
+    <div class="hero-label">— Laptop finder</div>
+    <div class="hero-title">What do you need<br>the <span class="q">PC for?</span></div>
+    <p class="hero-sub">Tell us your role and apps — we match every laptop to your exact workload.</p>
+    <div class="hero-btns">
+      <button class="arrow-btn" onclick="openFilter()">
+        Customize search
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+      </button>
+      <button class="upgrade-hero-btn" onclick="document.getElementById('upgradeModal').classList.add('show')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        Upgrade your PC
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── SUPABASE LIVE LISTINGS ── -->
+<section class="sb-section dot-bg" id="sbSection">
+  <div class="sb-header">
+    <div class="sb-label">— Live listings</div>
+    <div class="sb-count" id="sbCount"></div>
+  </div>
+  <div class="sb-grid" id="sbGrid">
+    <div class="sb-loading">Loading listings…</div>
+  </div>
+</section>
+
+<!-- TOP PICKS -->
+<section class="picks-section dot-bg" id="picksSection">
+  <div class="picks-header">
+    <div class="picks-label">— Top picks this week</div>
+    <div class="picks-count" id="picksCount"></div>
+  </div>
+  <div class="picks-grid" id="topPicksRow"></div>
+</section>
+
+<section class="filter-panel" id="filterPanel">
+  <div class="filter-grid">
+    <div>
+      <div class="filter-label">Your department</div>
+      <div class="dept-grid" id="deptGrid"></div>
+    </div>
+    <div>
+      <div class="filter-label">Apps you use</div>
+      <div class="apps-grid" id="appsGrid">
+        <span style="font-size:13px;color:var(--text3)">Pick a department first</span>
+      </div>
+    </div>
+  </div>
+  <button class="apply-btn" onclick="applyFilters()">Show matching laptops →</button>
+</section>
+
+<section class="results-section" id="resultsSection" style="display:none">
+  <div class="results-header">
+    <div>
+      <div class="results-title" id="resultsTitle">Laptops for you</div>
+      <div class="results-count" id="resultsCount"></div>
+    </div>
+    <button onclick="openFilter()" style="background:transparent;border:1px solid #d0d0d0;border-radius:2px;padding:8px 16px;font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);cursor:pointer" onmouseenter="this.style.borderColor='#666';this.style.color='var(--text)'" onmouseleave="this.style.borderColor='#333';this.style.color='var(--text2)'">Refine filters</button>
+  </div>
+  <div class="products-grid" id="productsGrid"></div>
+</section>
+
+<div class="product-page" id="productPage">
+  <button class="back-btn" onclick="closePdp()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4L6 8l4 4"/></svg>
+    Back to results
+  </button>
+  <div class="product-detail">
+    <div>
+      <div class="product-visual" id="pdpVisual">
+        <div>
+          <div id="pdpBadge"></div>
+          <svg class="big-laptop" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="15" width="160" height="105" rx="8" fill="#1A1A24" stroke="#3A3850" stroke-width="1.5"/>
+            <rect x="30" y="24" width="140" height="88" rx="4" fill="#0D0D14"/>
+            <rect x="40" y="32" width="120" height="72" rx="2" fill="#111118"/>
+            <circle cx="100" cy="68" r="4" fill="#6C63FF" opacity=".6"/>
+            <rect x="0" y="120" width="200" height="10" rx="3" fill="#222229"/>
+            <rect x="75" y="120" width="50" height="3" rx="1.5" fill="#2A2935"/>
+          </svg>
+        </div>
+        <div class="ar-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          AR Preview
+        </div>
+      </div>
+      <div class="perf-section" style="padding:12px 0 0">
+        <div class="perf-card" id="pdpPerfCard" style="display:none">
+          <div class="perf-title">Performance breakdown for your apps</div>
+          <div class="perf-bars" id="pdpPerfBars"></div>
+        </div>
+      </div>
+    </div>
+    <div class="product-info" id="pdpInfo"></div>
+  </div>
+</div>
+
+<div class="ar-modal-bg" id="arModal" onclick="closeAr(event)">
+  <div class="ar-modal">
+    <div class="ar-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <h3>AR Try-Out</h3>
+    <p>Point your camera at a flat surface and see this laptop in your space. Full AR experience coming soon.</p>
+    <p style="font-size:12px;color:var(--text3);margin-top:-12px;margin-bottom:20px">Works best on iOS & Android with ARKit / ARCore support.</p>
+    <button class="ar-close" onclick="document.getElementById('arModal').classList.remove('show')">Got it</button>
+  </div>
+</div>
+
+<div class="upgrade-modal-bg" id="upgradeModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="upgrade-modal">
+    <div class="upgrade-modal-header">MakeDo Diagnostics — Free Tool</div>
+    <h2>Squeeze more from<br>what you <span>already have</span></h2>
+    <p>Before you buy new, run our PC Scan. It stress-tests your CPU, RAM, disk, and GPU, then tells you exactly which upgrade gives the best performance per birr.</p>
+    <div class="upgrade-steps">
+      <div class="upgrade-step"><div class="step-num">01</div><div><div class="step-title">Download & run</div><div class="step-desc">Lightweight app, ~4MB. Runs on Windows 10/11. No install required.</div></div></div>
+      <div class="upgrade-step"><div class="step-num">02</div><div><div class="step-title">Stress test</div><div class="step-desc">5-minute benchmark — CPU load, RAM throughput, disk speeds, thermal performance.</div></div></div>
+      <div class="upgrade-step"><div class="step-num">03</div><div><div class="step-title">Get your upgrade plan</div><div class="step-desc">See what's bottlenecking you — SSD, RAM, thermal paste, or new machine — with budget estimates.</div></div></div>
+    </div>
+    <div class="upgrade-modal-btns">
+      <button class="download-btn">↓ Download for Windows</button>
+      <button class="upgrade-close" onclick="document.getElementById('upgradeModal').classList.remove('show')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SUPABASE CONFIG ───────────────────────────────────────────
+const SUPABASE_URL     = 'https://kokcttlulxucdgmxyfyh.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtva2N0dGx1bHh1Y2RnbXh5ZnloIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjM3NzUyNCwiZXhwIjoyMDk3OTUzNTI0fQ.dmnT1YgL-DO_jxPkyyhsUBiIXrNQWmlr8u52JdC_DWU'
+
+async function fetchSupabaseListings() {
+  try {
+    // Fetch products that have an img_key set
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/products?img_key=not.is.null&order=id.desc&limit=20`,
+      {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    )
+    if (!res.ok) throw new Error(`Supabase error: ${res.status}`)
+    const products = await res.json()
+
+    // For each product also fetch its primary image from product_images
+    const ids = products.map(p => p.id).join(',')
+    let imageMap = {}
+    if (ids) {
+      const imgRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/product_images?product_id=in.(${ids})&is_primary=eq.true`,
+        {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          }
+        }
+      )
+      if (imgRes.ok) {
+        const imgs = await imgRes.json()
+        imgs.forEach(img => { imageMap[img.product_id] = img.url })
+      }
+    }
+
+    // Attach image url to each product
+    const enriched = products.map(p => ({
+      ...p,
+      primary_image_url: imageMap[p.id]
+        || `${SUPABASE_URL}/storage/v1/object/public/product_images/${p.img_key}`
+    }))
+
+    renderSupabaseListings(enriched)
+  } catch (err) {
+    document.getElementById('sbGrid').innerHTML =
+      `<div class="sb-error">Could not load live listings: ${err.message}</div>`
+    console.error('[supabase fetch]', err)
+  }
+}
+
+function renderSupabaseListings(products) {
+  const grid  = document.getElementById('sbGrid')
+  const count = document.getElementById('sbCount')
+
+  if (!products.length) {
+    // No listings yet — hide the whole section silently
+    document.getElementById('sbSection').style.display = 'none'
+    return
+  }
+
+  count.textContent = `${products.length} live listing${products.length !== 1 ? 's' : ''}`
+
+  grid.innerHTML = products.map((p, i) => {
+    const name      = [p.brand, p.model_name, p.generation].filter(Boolean).join(' ')
+    const price     = p.price_etb ? `ETB ${Number(p.price_etb).toLocaleString()}` : 'Price on request'
+    const condition = p.condition ? p.condition.replace(/_/g, ' ') : null
+    const specs     = [
+      p.ram_gb     ? `${p.ram_gb}GB RAM`           : null,
+      p.storage_gb ? `${p.storage_gb}GB storage`   : null,
+      p.cpu        ? p.cpu.split(' ').slice(0,3).join(' ') : null,
+    ].filter(Boolean)
+
+    return `
+      <div class="sb-card fade-up" style="animation-delay:${i * 50}ms">
+        <div class="sb-img">
+          <img
+            src="${p.primary_image_url}"
+            alt="${name}"
+            loading="lazy"
+            onerror="this.parentElement.innerHTML='<svg width=\'64\' height=\'64\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'#ccc\' stroke-width=\'1\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><polyline points=\'21 15 16 10 5 21\'/></svg>'"
+          />
+          ${condition ? `<div class="sb-img-badge">${condition}</div>` : ''}
+        </div>
+        <div class="sb-body">
+          <div class="sb-brand">${p.brand || 'Unknown'}</div>
+          <div class="sb-name">${name || 'Unnamed listing'}</div>
+          ${specs.length ? `<div class="sb-specs">${specs.map(s => `<span class="sb-spec">${s}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="sb-footer">
+          <div class="sb-price">${price}</div>
+          <div class="sb-live-dot" title="Live listing"></div>
+        </div>
+      </div>`
+  }).join('')
+}
+
+// Kick off the fetch immediately
+fetchSupabaseListings()
+
+// ─── REST OF ORIGINAL CODE (untouched) ────────────────────────
+
+const CITIES=[
+  {name:'Addis Ababa',free:true},{name:'Dire Dawa',free:true},{name:'Hawassa',free:false},
+  {name:'Mekelle',free:false},{name:'Gondar',free:false},{name:'Bahir Dar',free:true},
+  {name:'Adama',free:true},{name:'Jimma',free:false},{name:'Harar',free:false},{name:'Shashamane',free:false},
+]
+const DEPT_ICONS={
+  'video-editor':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10,9 10,15 15,12" fill="currentColor" stroke="none"/><line x1="2" y1="8" x2="22" y2="8"/></svg>`,
+  'graphics':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>`,
+  'interior':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  '3d':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><polyline points="12 22 12 12"/><path d="M3.27 6.96L12 12.01l8.73-5.05M3.27 17.04L12 12"/></svg>`,
+  'writer':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
+  'civil':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/><path d="M15 13h3M15 16h3M6 13h3M6 16h3"/></svg>`,
+  'engineering':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M20 12h-2M6 12H4M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 20v-2M12 6V4"/></svg>`,
+  'architecture':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21h18M3 21V7l9-4 9 4v14"/><path d="M9 21V12h6v9"/></svg>`,
+  'cs':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="15" y1="4" x2="9" y2="20"/></svg>`,
+  'local-ai':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="7" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="17" cy="12" r="1.5" fill="currentColor" stroke="none"/><path d="M7 6V4M12 6V4M17 6V4M7 18v2M12 18v2M17 18v2"/></svg>`,
+  'gaming':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 12h4M8 10v4"/><circle cx="15" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="17" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>`,
+  'data':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  'finance':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"/></svg>`,
+  'health':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+  'media':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>`,
+}
+
+const APP_ICONS={
+  'Adobe Photoshop':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'Figma':'https://www.google.com/s2/favicons?sz=32&domain=figma.com',
+  'Adobe Illustrator':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'Adobe Premiere':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'Premiere Pro':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'After Effects':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'Blender':'https://www.google.com/s2/favicons?sz=32&domain=blender.org',
+  'DaVinci Resolve':'https://www.google.com/s2/favicons?sz=32&domain=blackmagicdesign.com',
+  'Lightroom':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'VS Code':'https://www.google.com/s2/favicons?sz=32&domain=code.visualstudio.com',
+  'Docker':'https://www.google.com/s2/favicons?sz=32&domain=docker.com',
+  'Android Studio':'https://www.google.com/s2/favicons?sz=32&domain=developer.android.com',
+  'Xcode':'https://www.google.com/s2/favicons?sz=32&domain=developer.apple.com',
+  'JetBrains IDEs':'https://www.google.com/s2/favicons?sz=32&domain=jetbrains.com',
+  'Postman':'https://www.google.com/s2/favicons?sz=32&domain=postman.com',
+  'Jupyter Notebook':'https://www.google.com/s2/favicons?sz=32&domain=jupyter.org',
+  'Power BI':'https://www.google.com/s2/favicons?sz=32&domain=powerbi.microsoft.com',
+  'Tableau':'https://www.google.com/s2/favicons?sz=32&domain=tableau.com',
+  'Excel (Heavy)':'https://www.google.com/s2/favicons?sz=32&domain=microsoft.com',
+  'Excel':'https://www.google.com/s2/favicons?sz=32&domain=microsoft.com',
+  'Python / R (Data)':'https://www.google.com/s2/favicons?sz=32&domain=python.org',
+  'SPSS':'https://www.google.com/s2/favicons?sz=32&domain=ibm.com',
+  'SAP':'https://www.google.com/s2/favicons?sz=32&domain=sap.com',
+  'Databricks':'https://www.google.com/s2/favicons?sz=32&domain=databricks.com',
+  'SQL Workbench':'https://www.google.com/s2/favicons?sz=32&domain=mysql.com',
+  'QuickBooks':'https://www.google.com/s2/favicons?sz=32&domain=quickbooks.intuit.com',
+  'Oracle ERP':'https://www.google.com/s2/favicons?sz=32&domain=oracle.com',
+  'Bloomberg Terminal':'https://www.google.com/s2/favicons?sz=32&domain=bloomberg.com',
+  'Sage':'https://www.google.com/s2/favicons?sz=32&domain=sage.com',
+  'Zoho Books':'https://www.google.com/s2/favicons?sz=32&domain=zoho.com',
+  'Matlab':'https://www.google.com/s2/favicons?sz=32&domain=mathworks.com',
+  'LaTeX / Overleaf':'https://www.google.com/s2/favicons?sz=32&domain=overleaf.com',
+  'Zoom':'https://www.google.com/s2/favicons?sz=32&domain=zoom.us',
+  'Mendeley':'https://www.google.com/s2/favicons?sz=32&domain=mendeley.com',
+  'ArcGIS':'https://www.google.com/s2/favicons?sz=32&domain=arcgis.com',
+  'NVIVO':'https://www.google.com/s2/favicons?sz=32&domain=qsrinternational.com',
+  'ERP System':'https://www.google.com/s2/favicons?sz=32&domain=sap.com',
+  'Zoom / Teams':'https://www.google.com/s2/favicons?sz=32&domain=zoom.us',
+  'Chrome + many tabs':'https://www.google.com/s2/favicons?sz=32&domain=google.com',
+  'Google Workspace':'https://www.google.com/s2/favicons?sz=32&domain=workspace.google.com',
+  'Slack':'https://www.google.com/s2/favicons?sz=32&domain=slack.com',
+  'CRM Software':'https://www.google.com/s2/favicons?sz=32&domain=salesforce.com',
+  'EMR / EHR Software':'https://www.google.com/s2/favicons?sz=32&domain=epic.com',
+  'DICOM Viewer':'https://www.google.com/s2/favicons?sz=32&domain=osirix-viewer.com',
+  'Reference Apps':'https://www.google.com/s2/favicons?sz=32&domain=uptodate.com',
+  'Coding Software (ICD)':'https://www.google.com/s2/favicons?sz=32&domain=ama-assn.org',
+  'OBS Studio':'https://www.google.com/s2/favicons?sz=32&domain=obsproject.com',
+  'Adobe Audition':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'Canva':'https://www.google.com/s2/favicons?sz=32&domain=canva.com',
+  'CapCut':'https://www.google.com/s2/favicons?sz=32&domain=capcut.com',
+  'Final Cut Pro':'https://www.google.com/s2/favicons?sz=32&domain=apple.com',
+  'Vegas Pro':'https://www.google.com/s2/favicons?sz=32&domain=vegascreativesoftware.com',
+  'Affinity Designer':'https://www.google.com/s2/favicons?sz=32&domain=affinity.serif.com',
+  'CorelDRAW':'https://www.google.com/s2/favicons?sz=32&domain=coreldraw.com',
+  'Sketch':'https://www.google.com/s2/favicons?sz=32&domain=sketch.com',
+  'Adobe XD':'https://www.google.com/s2/favicons?sz=32&domain=adobe.com',
+  'SketchUp':'https://www.google.com/s2/favicons?sz=32&domain=sketchup.com',
+  'AutoCAD':'https://www.google.com/s2/favicons?sz=32&domain=autodesk.com',
+  'Revit':'https://www.google.com/s2/favicons?sz=32&domain=autodesk.com',
+  'ArchiCAD':'https://www.google.com/s2/favicons?sz=32&domain=graphisoft.com',
+  '3ds Max':'https://www.google.com/s2/favicons?sz=32&domain=autodesk.com',
+  'Cinema 4D':'https://www.google.com/s2/favicons?sz=32&domain=maxon.net',
+  'Maya':'https://www.google.com/s2/favicons?sz=32&domain=autodesk.com',
+  'ZBrush':'https://www.google.com/s2/favicons?sz=32&domain=maxon.net',
+  'Houdini':'https://www.google.com/s2/favicons?sz=32&domain=sidefx.com',
+  'Unreal Engine':'https://www.google.com/s2/favicons?sz=32&domain=unrealengine.com',
+  'Unity':'https://www.google.com/s2/favicons?sz=32&domain=unity.com',
+  'Word / Google Docs':'https://www.google.com/s2/favicons?sz=32&domain=docs.google.com',
+  'Scrivener':'https://www.google.com/s2/favicons?sz=32&domain=literatureandlatte.com',
+  'Notion':'https://www.google.com/s2/favicons?sz=32&domain=notion.so',
+  'Grammarly':'https://www.google.com/s2/favicons?sz=32&domain=grammarly.com',
+  'ChatGPT / Claude':'https://www.google.com/s2/favicons?sz=32&domain=openai.com',
+  'ETABS':'https://www.google.com/s2/favicons?sz=32&domain=csiamerica.com',
+  'STAAD.Pro':'https://www.google.com/s2/favicons?sz=32&domain=bentley.com',
+  'SAP2000':'https://www.google.com/s2/favicons?sz=32&domain=csiamerica.com',
+  'Civil 3D':'https://www.google.com/s2/favicons?sz=32&domain=autodesk.com',
+  'ANSYS':'https://www.google.com/s2/favicons?sz=32&domain=ansys.com',
+  'SolidWorks':'https://www.google.com/s2/favicons?sz=32&domain=solidworks.com',
+  'CATIA':'https://www.google.com/s2/favicons?sz=32&domain=3ds.com',
+  'Fusion 360':'https://www.google.com/s2/favicons?sz=32&domain=autodesk.com',
+  'MATLAB':'https://www.google.com/s2/favicons?sz=32&domain=mathworks.com',
+  'Ollama':'https://www.google.com/s2/favicons?sz=32&domain=ollama.ai',
+  'LM Studio':'https://www.google.com/s2/favicons?sz=32&domain=lmstudio.ai',
+  'Stable Diffusion':'https://www.google.com/s2/favicons?sz=32&domain=stability.ai',
+  'ComfyUI':'https://www.google.com/s2/favicons?sz=32&domain=comfy.org',
+  'Whisper (local)':'https://www.google.com/s2/favicons?sz=32&domain=openai.com',
+  'Steam':'https://www.google.com/s2/favicons?sz=32&domain=store.steampowered.com',
+  'Epic Games':'https://www.google.com/s2/favicons?sz=32&domain=epicgames.com',
+  'Discord':'https://www.google.com/s2/favicons?sz=32&domain=discord.com',
+}
+
+const DEPARTMENTS=[
+  {id:'video-editor',label:'Video Editor',icon:'video-editor',apps:['DaVinci Resolve','Adobe Premiere','Final Cut Pro','After Effects','CapCut','Vegas Pro','OBS Studio','Adobe Audition']},
+  {id:'graphics',label:'Graphics Designer',icon:'graphics',apps:['Adobe Photoshop','Adobe Illustrator','Figma','Canva','CorelDRAW','Affinity Designer','Adobe XD','Sketch']},
+  {id:'interior',label:'Interior Designer',icon:'interior',apps:['SketchUp','Blender','AutoCAD','3ds Max','Revit','Canva','Adobe Photoshop','Lumion']},
+  {id:'3d',label:'3D Modeler',icon:'3d',apps:['Blender','3ds Max','Maya','Cinema 4D','ZBrush','Houdini','Unreal Engine','Unity']},
+  {id:'writer',label:'Writer',icon:'writer',apps:['Word / Google Docs','Scrivener','Notion','Grammarly','ChatGPT / Claude','Adobe Illustrator','Canva','Zoom']},
+  {id:'civil',label:'Civil Engineer',icon:'civil',apps:['AutoCAD','Civil 3D','ETABS','STAAD.Pro','SAP2000','MATLAB','ArcGIS','Excel (Heavy)']},
+  {id:'engineering',label:'Engineering',icon:'engineering',apps:['ANSYS','SolidWorks','CATIA','Fusion 360','MATLAB','AutoCAD','Python / R (Data)','Jupyter Notebook']},
+  {id:'architecture',label:'Architecture',icon:'architecture',apps:['AutoCAD','Revit','ArchiCAD','SketchUp','Blender','Adobe Photoshop','Lumion','3ds Max']},
+  {id:'cs',label:'Computer Science',icon:'cs',apps:['VS Code','Docker','JetBrains IDEs','Android Studio','Xcode','Jupyter Notebook','VMs / Virtualization','Postman']},
+  {id:'local-ai',label:'Local AI Workloads',icon:'local-ai',apps:['Ollama','LM Studio','Stable Diffusion','ComfyUI','Whisper (local)','Jupyter Notebook','Python / R (Data)','Blender']},
+  {id:'gaming',label:'Gaming',icon:'gaming',apps:['Steam','Epic Games','Unreal Engine','Unity','Discord','OBS Studio','DaVinci Resolve','Blender']},
+  {id:'data',label:'Data & Analytics',icon:'data',apps:['Power BI','Tableau','Excel (Heavy)','Python / R (Data)','SPSS','SAP','Databricks','SQL Workbench']},
+  {id:'finance',label:'Finance & Accounting',icon:'finance',apps:['Excel','QuickBooks','SAP','Oracle ERP','Bloomberg Terminal','Sage','Zoho Books']},
+  {id:'health',label:'Healthcare & Medicine',icon:'health',apps:['EMR / EHR Software','DICOM Viewer','Zoom','Excel','Reference Apps','Coding Software (ICD)']},
+  {id:'media',label:'Media & Journalism',icon:'media',apps:['Adobe Premiere','OBS Studio','Zoom','Slack','Chrome + many tabs','Adobe Audition','Canva']},
+]
+const APP_REQS={
+  'Adobe Photoshop':{ram:16,storage:50,gpu:1,cpu:3},'Figma':{ram:8,storage:10,gpu:1,cpu:2},
+  'Adobe Illustrator':{ram:16,storage:30,gpu:1,cpu:3},'Premiere Pro':{ram:32,storage:100,gpu:2,cpu:4},
+  'After Effects':{ram:32,storage:60,gpu:2,cpu:4},'Blender':{ram:32,storage:30,gpu:2,cpu:5},
+  'DaVinci Resolve':{ram:32,storage:80,gpu:2,cpu:5},'Lightroom':{ram:16,storage:50,gpu:1,cpu:3},
+  'VS Code':{ram:8,storage:10,gpu:0,cpu:2},'Docker':{ram:16,storage:40,gpu:0,cpu:3},
+  'Android Studio':{ram:16,storage:30,gpu:1,cpu:3},'Xcode':{ram:16,storage:50,gpu:1,cpu:3},
+  'JetBrains IDEs':{ram:16,storage:20,gpu:0,cpu:3},'Postman':{ram:8,storage:5,gpu:0,cpu:1},
+  'VMs / Virtualization':{ram:32,storage:100,gpu:0,cpu:4},'Jupyter Notebook':{ram:16,storage:20,gpu:1,cpu:3},
+  'Power BI':{ram:16,storage:20,gpu:0,cpu:3},'Tableau':{ram:16,storage:20,gpu:1,cpu:3},
+  'Excel (Heavy)':{ram:16,storage:10,gpu:0,cpu:2},'Python / R (Data)':{ram:16,storage:20,gpu:1,cpu:3},
+  'SPSS':{ram:8,storage:10,gpu:0,cpu:2},'SAP':{ram:16,storage:20,gpu:0,cpu:3},
+  'Databricks':{ram:32,storage:40,gpu:1,cpu:4},'SQL Workbench':{ram:8,storage:5,gpu:0,cpu:2},
+  'Excel':{ram:8,storage:5,gpu:0,cpu:2},'QuickBooks':{ram:8,storage:5,gpu:0,cpu:1},
+  'Oracle ERP':{ram:16,storage:20,gpu:0,cpu:3},'Bloomberg Terminal':{ram:16,storage:10,gpu:0,cpu:2},
+  'Sage':{ram:8,storage:5,gpu:0,cpu:1},'Zoho Books':{ram:4,storage:2,gpu:0,cpu:1},
+  'Matlab':{ram:16,storage:30,gpu:1,cpu:4},'LaTeX / Overleaf':{ram:4,storage:5,gpu:0,cpu:1},
+  'Zoom':{ram:8,storage:5,gpu:0,cpu:2},'Mendeley':{ram:4,storage:5,gpu:0,cpu:1},
+  'ArcGIS':{ram:16,storage:30,gpu:1,cpu:3},'NVIVO':{ram:8,storage:10,gpu:0,cpu:2},
+  'ERP System':{ram:16,storage:20,gpu:0,cpu:3},'Zoom / Teams':{ram:8,storage:5,gpu:0,cpu:2},
+  'Chrome + many tabs':{ram:16,storage:10,gpu:0,cpu:2},'Google Workspace':{ram:8,storage:5,gpu:0,cpu:1},
+  'Slack':{ram:8,storage:5,gpu:0,cpu:1},'CRM Software':{ram:8,storage:10,gpu:0,cpu:2},
+  'EMR / EHR Software':{ram:16,storage:20,gpu:0,cpu:2},'DICOM Viewer':{ram:16,storage:30,gpu:1,cpu:3},
+  'Reference Apps':{ram:4,storage:5,gpu:0,cpu:1},'Coding Software (ICD)':{ram:8,storage:10,gpu:0,cpu:1},
+  'Adobe Premiere':{ram:32,storage:80,gpu:2,cpu:4},'OBS Studio':{ram:16,storage:20,gpu:1,cpu:3},
+  'Adobe Audition':{ram:16,storage:30,gpu:0,cpu:3},'Canva':{ram:8,storage:5,gpu:1,cpu:2},
+  'CapCut':{ram:16,storage:30,gpu:1,cpu:3},'Final Cut Pro':{ram:32,storage:80,gpu:2,cpu:4},
+  'Vegas Pro':{ram:32,storage:60,gpu:2,cpu:4},'Affinity Designer':{ram:8,storage:5,gpu:1,cpu:2},
+  'CorelDRAW':{ram:8,storage:10,gpu:1,cpu:2},'Adobe XD':{ram:8,storage:10,gpu:1,cpu:2},
+  'Sketch':{ram:8,storage:5,gpu:1,cpu:2},'SketchUp':{ram:16,storage:20,gpu:1,cpu:3},
+  'AutoCAD':{ram:16,storage:20,gpu:1,cpu:3},'Revit':{ram:32,storage:40,gpu:1,cpu:4},
+  'ArchiCAD':{ram:16,storage:30,gpu:1,cpu:3},'3ds Max':{ram:32,storage:30,gpu:2,cpu:4},
+  'Cinema 4D':{ram:32,storage:30,gpu:2,cpu:4},'Maya':{ram:32,storage:40,gpu:2,cpu:5},
+  'ZBrush':{ram:32,storage:30,gpu:2,cpu:4},'Houdini':{ram:64,storage:50,gpu:2,cpu:5},
+  'Unreal Engine':{ram:32,storage:100,gpu:2,cpu:5},'Unity':{ram:16,storage:30,gpu:2,cpu:4},
+  'Word / Google Docs':{ram:4,storage:2,gpu:0,cpu:1},'Scrivener':{ram:4,storage:2,gpu:0,cpu:1},
+  'Notion':{ram:8,storage:5,gpu:0,cpu:1},'Grammarly':{ram:4,storage:2,gpu:0,cpu:1},
+  'ChatGPT / Claude':{ram:4,storage:2,gpu:0,cpu:1},'Lumion':{ram:32,storage:40,gpu:2,cpu:5},
+  'ETABS':{ram:16,storage:20,gpu:0,cpu:4},'STAAD.Pro':{ram:16,storage:20,gpu:0,cpu:3},
+  'SAP2000':{ram:16,storage:20,gpu:0,cpu:3},'Civil 3D':{ram:32,storage:40,gpu:1,cpu:4},
+  'ANSYS':{ram:64,storage:100,gpu:2,cpu:5},'SolidWorks':{ram:32,storage:30,gpu:2,cpu:4},
+  'CATIA':{ram:32,storage:40,gpu:2,cpu:4},'Fusion 360':{ram:16,storage:20,gpu:1,cpu:3},
+  'MATLAB':{ram:16,storage:30,gpu:1,cpu:4},'Ollama':{ram:32,storage:100,gpu:2,cpu:4},
+  'LM Studio':{ram:32,storage:100,gpu:2,cpu:4},'Stable Diffusion':{ram:16,storage:50,gpu:2,cpu:3},
+  'ComfyUI':{ram:16,storage:50,gpu:2,cpu:3},'Whisper (local)':{ram:16,storage:20,gpu:1,cpu:3},
+  'Steam':{ram:16,storage:200,gpu:2,cpu:4},'Epic Games':{ram:16,storage:200,gpu:2,cpu:4},
+  'Discord':{ram:8,storage:5,gpu:0,cpu:1},
+}
+const PRODUCTS=[
+  {id:1,brand:'Dell',name:'XPS 15 9530',ram:32,storage:1000,gpu:2,cpu:5,price:185000,hot:true,freeInCities:['Addis Ababa','Dire Dawa','Bahir Dar','Adama'],img:'silver',specs:{Display:'15.6" OLED 3.5K',CPU:'Intel i9-13900H',RAM:'32GB DDR5',Storage:'1TB NVMe',GPU:'NVIDIA RTX 4060 8GB',Battery:'86Wh, ~8h'}},
+  {id:2,brand:'Apple',name:'MacBook Pro 16" M3 Max',ram:64,storage:1000,gpu:2,cpu:5,price:260000,hot:false,freeInCities:['Addis Ababa'],img:'space',specs:{Display:'16.2" Liquid Retina XDR',CPU:'Apple M3 Max 16-core',RAM:'64GB Unified',Storage:'1TB SSD',GPU:'40-core GPU',Battery:'100Wh, ~22h'}},
+  {id:3,brand:'Lenovo',name:'ThinkPad X1 Carbon Gen 11',ram:32,storage:512,gpu:0,cpu:3,price:145000,hot:false,freeInCities:['Addis Ababa','Dire Dawa','Adama','Bahir Dar'],img:'black',specs:{Display:'14" IPS 2.8K OLED',CPU:'Intel i7-1365U',RAM:'32GB LPDDR5',Storage:'512GB NVMe',GPU:'Intel Iris Xe',Battery:'57Wh, ~15h'}},
+  {id:4,brand:'ASUS',name:'ROG Zephyrus G14',ram:32,storage:1000,gpu:2,cpu:4,price:165000,hot:true,freeInCities:['Addis Ababa','Dire Dawa'],img:'white',specs:{Display:'14" QHD+ 165Hz',CPU:'AMD Ryzen 9 7940HS',RAM:'32GB DDR5',Storage:'1TB NVMe',GPU:'NVIDIA RTX 4070 8GB',Battery:'76Wh, ~10h'}},
+  {id:5,brand:'Microsoft',name:'Surface Laptop 5',ram:16,storage:256,gpu:0,cpu:2,price:115000,hot:false,freeInCities:['Addis Ababa','Bahir Dar','Adama','Dire Dawa'],img:'blue',specs:{Display:'15" PixelSense 2496×1664',CPU:'Intel i7-1255U',RAM:'16GB LPDDR5x',Storage:'256GB SSD',GPU:'Intel Iris Xe',Battery:'58Wh, ~18h'}},
+  {id:6,brand:'HP',name:'Spectre x360 14',ram:32,storage:512,gpu:1,cpu:3,price:135000,hot:false,freeInCities:['Addis Ababa','Adama'],img:'gold',specs:{Display:'14" 2.8K OLED Touch',CPU:'Intel i7-1355U',RAM:'32GB LPDDR5',Storage:'512GB NVMe',GPU:'Intel Arc Xe',Battery:'66Wh, ~17h'}},
+  {id:7,brand:'Lenovo',name:'IdeaPad Slim 5i',ram:16,storage:512,gpu:0,cpu:2,price:72000,hot:false,freeInCities:['Addis Ababa','Dire Dawa','Bahir Dar','Adama'],img:'silver',specs:{Display:'15.6" FHD IPS',CPU:'Intel i5-1335U',RAM:'16GB DDR5',Storage:'512GB NVMe',GPU:'Intel UHD',Battery:'56Wh, ~12h'}},
+  {id:8,brand:'Acer',name:'Predator Helios 16',ram:32,storage:1000,gpu:2,cpu:5,price:198000,hot:true,freeInCities:['Addis Ababa'],img:'black',specs:{Display:'16" QHD IPS 240Hz',CPU:'Intel i9-13900HX',RAM:'32GB DDR5',Storage:'1TB NVMe',GPU:'NVIDIA RTX 4080 12GB',Battery:'90Wh, ~6h'}},
+  {id:9,brand:'Apple',name:'MacBook Air 15" M2',ram:8,storage:256,gpu:1,cpu:3,price:155000,hot:false,freeInCities:['Addis Ababa','Adama'],img:'space',specs:{Display:'15.3" Liquid Retina',CPU:'Apple M2 8-core',RAM:'8GB Unified',Storage:'256GB SSD',GPU:'10-core GPU',Battery:'66Wh, ~18h'}},
+  {id:10,brand:'ASUS',name:'VivoBook 16X',ram:16,storage:512,gpu:1,cpu:3,price:88000,hot:false,freeInCities:['Addis Ababa','Dire Dawa','Bahir Dar','Adama'],img:'blue',specs:{Display:'16" WUXGA IPS 120Hz',CPU:'AMD Ryzen 7 7745H',RAM:'16GB DDR5',Storage:'512GB NVMe',GPU:'NVIDIA RTX 3050 4GB',Battery:'70Wh, ~10h'}},
+  {id:11,brand:'HP',name:'EliteBook 840 G10',ram:32,storage:512,gpu:0,cpu:3,price:128000,hot:false,freeInCities:['Addis Ababa','Dire Dawa','Adama'],img:'silver',specs:{Display:'14" FHD Sure View',CPU:'Intel i7-1355U',RAM:'32GB DDR5',Storage:'512GB NVMe',GPU:'Intel Iris Xe',Battery:'51Wh, ~13h'}},
+  {id:12,brand:'Dell',name:'Inspiron 15 3520',ram:8,storage:256,gpu:0,cpu:1,price:48000,hot:false,freeInCities:['Addis Ababa','Dire Dawa','Bahir Dar','Adama'],img:'black',specs:{Display:'15.6" FHD 120Hz',CPU:'Intel i5-1235U',RAM:'8GB DDR4',Storage:'256GB NVMe',GPU:'Intel UHD',Battery:'54Wh, ~9h'}},
+]
+
+let state={city:null,dept:null,apps:[],minReqs:null,filtered:[],currentProduct:null}
+
+function laptopSVG(color,size=90){
+  const fills={silver:'#C8C8CC',space:'#2C2C30',black:'#1A1A1F',white:'#F5F5F5',blue:'#2563EB',gold:'#B8860B'}
+  const f=fills[color]||'#888'
+  return`<svg width="${size}" height="${Math.round(size*.75)}" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="15" width="160" height="105" rx="8" fill="${f}" opacity=".9"/>
+    <rect x="28" y="22" width="144" height="92" rx="5" fill="#0A0A10"/>
+    <rect x="34" y="28" width="132" height="80" rx="3" fill="#0D0D16"/>
+    <rect x="42" y="35" width="116" height="66" rx="2" fill="#111120"/>
+    <circle cx="100" cy="68" r="3" fill="#6C63FF" opacity=".8"/>
+    <rect x="0" y="120" width="200" height="12" rx="4" fill="${f}" opacity=".7"/>
+    <rect x="72" y="120" width="56" height="4" rx="2" fill="#1A1A24"/>
+  </svg>`
+}
+
+function renderCities(){
+  const dd=document.getElementById('cityDropdown')
+  dd.innerHTML=CITIES.map(c=>`<div class="city-option ${state.city===c.name?'active':''}" onclick="selectCity('${c.name}')"><span>${c.name}</span>${c.free?'<span class="free-tag">Free delivery</span>':''}</div>`).join('')
+}
+function toggleCity(){
+  const dd=document.getElementById('cityDropdown')
+  renderCities()
+  dd.style.display=dd.style.display==='none'?'block':'none'
+}
+function selectCity(name){
+  state.city=name
+  document.getElementById('cityLabel').textContent=name
+  document.getElementById('cityDropdown').style.display='none'
+  if(state.filtered.length) renderProducts()
+  renderTopPicks()
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.relative')) document.getElementById('cityDropdown').style.display='none'
+})
+
+function openFilter(){
+  const fp=document.getElementById('filterPanel')
+  fp.classList.toggle('open')
+  if(fp.classList.contains('open')){renderDepts();fp.scrollIntoView({behavior:'smooth'})}
+}
+function renderDepts(){
+  document.getElementById('deptGrid').innerHTML=DEPARTMENTS.map(d=>`<button class="dept-btn ${state.dept===d.id?'active':''}" onclick="selectDept('${d.id}')"><span class="dept-icon">${DEPT_ICONS[d.icon]||''}</span>${d.label}</button>`).join('')
+}
+function selectDept(id){
+  state.dept=id;state.apps=[];renderDepts()
+  const dept=DEPARTMENTS.find(d=>d.id===id)
+  document.getElementById('appsGrid').innerHTML=dept.apps.map(a=>{
+    const iconUrl=APP_ICONS[a]
+    const iconHtml=iconUrl
+      ?`<span class="app-icon"><img src="${iconUrl}" alt="" onerror="this.parentElement.style.display='none'"/></span>`
+      :`<span class="app-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="8" y1="5" x2="8" y2="11"/></svg></span>`
+    return`<div class="app-pill" onclick="toggleApp('${a}',this)">${iconHtml}${a}</div>`
+  }).join('')
+}
+function toggleApp(app,el){
+  const i=state.apps.indexOf(app)
+  if(i===-1){state.apps.push(app);el.classList.add('active')}else{state.apps.splice(i,1);el.classList.remove('active')}
+}
+function computeMinReqs(){
+  if(!state.apps.length) return null
+  let r={ram:0,storage:0,gpu:0,cpu:0}
+  state.apps.forEach(a=>{const req=APP_REQS[a]||{};r.ram=Math.max(r.ram,req.ram||0);r.storage=Math.max(r.storage,req.storage||0);r.gpu=Math.max(r.gpu,req.gpu||0);r.cpu=Math.max(r.cpu,req.cpu||0)})
+  return r
+}
+function scoreLaptop(laptop,reqs){
+  if(!reqs) return{badge:'unrated',score:0}
+  let pts=0
+  if(laptop.ram>=reqs.ram*2) pts+=2;else if(laptop.ram>=reqs.ram) pts+=1
+  if(laptop.storage>=reqs.storage*2) pts+=2;else if(laptop.storage>=reqs.storage) pts+=1
+  if(laptop.gpu>=reqs.gpu) pts+=2;else if(laptop.gpu===reqs.gpu-1) pts+=1
+  if(laptop.cpu>=reqs.cpu+1) pts+=2;else if(laptop.cpu>=reqs.cpu) pts+=1
+  const pct=pts/8
+  if(pct>=0.85) return{badge:'perfect',score:pct}
+  if(pct>=0.55) return{badge:'good',score:pct}
+  return{badge:'usable',score:pct}
+}
+function appScorePct(laptop,app){
+  const req=APP_REQS[app];if(!req) return 1
+  let s=0
+  s+=Math.min(1,(laptop.ram/(req.ram||1))*0.5)
+  s+=Math.min(1,(laptop.cpu/(req.cpu||1))*0.3)
+  s+=laptop.gpu>=req.gpu?0.2:laptop.gpu>0?0.1:0
+  return Math.min(1,s)
+}
+function applyFilters(){
+  state.minReqs=computeMinReqs()
+  const scored=PRODUCTS.map(p=>({...p,...scoreLaptop(p,state.minReqs)}))
+  scored.sort((a,b)=>b.score-a.score)
+  state.filtered=scored
+  document.getElementById('filterPanel').classList.remove('open')
+  document.getElementById('heroSection').style.display='none'
+  document.getElementById('picksSection').style.display='none'
+  document.getElementById('sbSection').style.display='none'
+  document.getElementById('resultsSection').style.display='block'
+  renderProducts()
+}
+function hasFreeDelivery(p){return state.city&&p.freeInCities.includes(state.city)}
+function gpuLabel(g){return['No GPU','Integrated GPU','Dedicated GPU'][g]||'Unknown GPU'}
+function badgeLabel(b){return{perfect:'✦ Perfect',good:'◆ Good',usable:'◇ Usable',unrated:'Unrated'}[b]||''}
+
+function renderProducts(){
+  const dept=DEPARTMENTS.find(d=>d.id===state.dept)
+  document.getElementById('resultsTitle').textContent=dept?`Laptops for ${dept.label}`:'All Laptops'
+  document.getElementById('resultsCount').textContent=`${state.filtered.length} laptops matched`
+  document.getElementById('productsGrid').innerHTML=state.filtered.map((p,i)=>`
+    <div class="product-card fade-up" style="animation-delay:${i*60}ms" onclick="openPdp(${p.id})">
+      <div class="card-img">
+        ${laptopSVG(p.img,110)}
+        <div class="badge ${p.badge}">${badgeLabel(p.badge)}</div>
+        ${hasFreeDelivery(p)?'<div class="free-delivery">Free delivery</div>':''}
+      </div>
+      <div class="card-body">
+        <div class="card-brand">${p.brand}</div>
+        <div class="card-name">${p.name}</div>
+        <div class="card-specs">
+          <span class="spec-pill">${p.ram}GB RAM</span>
+          <span class="spec-pill">${p.storage>=1000?p.storage/1000+'TB':p.storage+'GB'} SSD</span>
+          <span class="spec-pill">${gpuLabel(p.gpu)}</span>
+        </div>
+        <div class="card-footer">
+          <div>
+            <div class="price">ETB ${p.price.toLocaleString()}</div>
+            ${hasFreeDelivery(p)?'<div class="price-sub" style="color:var(--green)">Free to '+state.city+'</div>':'<div class="price-sub">+ delivery</div>'}
+          </div>
+          <button class="view-btn">View →</button>
+        </div>
+      </div>
+    </div>`).join('')
+}
+
+function renderTopPicks(){
+  const picks=[...PRODUCTS].sort(()=>Math.random()-.5).slice(0,8)
+  document.getElementById('picksCount').textContent=`${PRODUCTS.length} laptops available`
+  document.getElementById('topPicksRow').innerHTML=picks.map((p,i)=>`
+    <div class="pick-card fade-up" style="animation-delay:${i*50}ms" onclick="openPdpFromPick(${p.id})">
+      <div class="pick-img">
+        ${laptopSVG(p.img,80)}
+        ${p.hot?'<div class="pick-badge-hot">&#x25B2; Hot</div>':''}
+        ${hasFreeDelivery(p)?'<div class="pick-free-pill">Free delivery</div>':''}
+      </div>
+      <div class="pick-body">
+        <div class="pick-brand">${p.brand}</div>
+        <div class="pick-name">${p.name}</div>
+        <div class="pick-specs">
+          <span class="pick-spec">${p.ram}GB</span>
+          <span class="pick-spec">${p.storage>=1000?p.storage/1000+'TB':p.storage+'GB'}</span>
+          <span class="pick-spec">${gpuLabel(p.gpu)}</span>
+        </div>
+      </div>
+      <div class="pick-footer">
+        <div class="pick-price">ETB ${p.price.toLocaleString()}</div>
+        <button class="pick-add" onclick="event.stopPropagation()">+</button>
+      </div>
+    </div>`).join('')
+}
+
+function openPdp(id){
+  const p=state.filtered.find(x=>x.id===id)||PRODUCTS.find(x=>x.id===id)
+  state.currentProduct=p
+  const scored={...p,...scoreLaptop(p,state.minReqs)}
+  document.getElementById('resultsSection').style.display='none'
+  document.getElementById('productPage').classList.add('open')
+  document.getElementById('pdpBadge').innerHTML=`<div class="badge ${scored.badge}" style="position:static;display:inline-flex;align-items:center;gap:6px;font-size:13px;margin-bottom:20px">${badgeLabel(scored.badge)}</div>`
+  const free=hasFreeDelivery(p)
+  document.getElementById('pdpInfo').innerHTML=`
+    <div class="card-brand" style="font-size:12px;margin-bottom:6px">${p.brand}</div>
+    <h1 style="font-size:30px;font-weight:700;line-height:1.2;margin-bottom:16px">${p.name}</h1>
+    <div class="big-price">ETB ${p.price.toLocaleString()}</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:16px">Inclusive of VAT</div>
+    <div class="delivery-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${free?'var(--green)':'var(--text3)'}"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z" stroke-width="1.5"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="1.5"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="1.5"/></svg>
+      <span style="font-size:13px;color:${free?'var(--green)':'var(--text2)'}">
+        ${free?'Free delivery to '+state.city:'Standard delivery — paid'}
+        ${!state.city?'<span style="color:var(--accent2);cursor:pointer" onclick="toggleCity()"> Select city for delivery info</span>':''}
+      </span>
+    </div>
+    <table class="specs-table">${Object.entries(p.specs).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>
+    <div class="actions">
+      <button class="buy-btn">Add to cart</button>
+      <button class="try-btn" onclick="openAr()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Try it out — AR Preview
+      </button>
+    </div>`
+  if(state.apps.length){
+    document.getElementById('pdpPerfCard').style.display='block'
+    document.getElementById('pdpPerfBars').innerHTML=state.apps.map(app=>{
+      const pct=Math.round(appScorePct(p,app)*100)
+      const cls=pct>=80?'perfect':pct>=50?'good':'usable'
+      return`<div class="perf-row"><div class="perf-row-label">${app}</div><div class="perf-bar-bg"><div class="perf-bar-fill ${cls}" style="width:${pct}%"></div></div><div class="perf-val" style="color:var(--${cls==='perfect'?'green':cls==='good'?'amber':'red'})">${pct}%</div></div>`
+    }).join('')
+  }
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function closePdp(){
+  document.getElementById('productPage').classList.remove('open')
+  document.getElementById('resultsSection').style.display='block'
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function openPdpFromPick(id){
+  if(!state.filtered.length) state.filtered=PRODUCTS.map(p=>({...p,badge:'unrated',score:0}))
+  document.getElementById('heroSection').style.display='none'
+  document.getElementById('picksSection').style.display='none'
+  document.getElementById('sbSection').style.display='none'
+  document.getElementById('resultsSection').style.display='none'
+  openPdp(id)
+}
+
+function openAr(){document.getElementById('arModal').classList.add('show')}
+function closeAr(e){if(e.target===document.getElementById('arModal'))document.getElementById('arModal').classList.remove('show')}
+
+renderCities()
+renderTopPicks()
+</script>
+</body>
+</html>
