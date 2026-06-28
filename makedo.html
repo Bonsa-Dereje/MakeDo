@@ -133,6 +133,10 @@ h1,h2,h3,h4{font-family:var(--font-mono);font-weight:700}
 .app-pill.active{background:rgba(255,107,0,.08);border-color:var(--accent);color:var(--accent)}
 .apply-btn{margin-top:24px;background:#111111;color:#fff;border:none;border-radius:2px;padding:12px 28px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;display:block;margin-left:auto}
 .apply-btn:hover{background:#ddd}
+.budget-grid{display:flex;flex-wrap:wrap;gap:6px}
+.budget-btn{background:transparent;border:1px solid #ddd;border-radius:2px;padding:8px 14px;font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.06em;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.budget-btn:hover{border-color:#aaa;color:var(--text)}
+.budget-btn.active{background:rgba(255,107,0,.08);border-color:var(--accent);color:var(--accent)}
 
 .results-section{padding:40px 32px;max-width:1300px;margin:0 auto}
 .results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
@@ -304,6 +308,17 @@ h1,h2,h3,h4{font-family:var(--font-mono);font-weight:700}
       <div class="apps-grid" id="appsGrid">
         <span style="font-size:13px;color:var(--text3)">Pick a department first</span>
       </div>
+    </div>
+  </div>
+  <div style="max-width:900px;margin:24px auto 0">
+    <div class="filter-label">Budget <span style="color:var(--text3);font-weight:400;letter-spacing:.04em;font-size:8px">(ETB)</span></div>
+    <div class="budget-grid" id="budgetGrid">
+      <button class="budget-btn" data-min="15000"  data-max="20000"  onclick="toggleBudget(this)">ETB 15k – 20k</button>
+      <button class="budget-btn" data-min="21000"  data-max="35000"  onclick="toggleBudget(this)">ETB 21k – 35k</button>
+      <button class="budget-btn" data-min="36000"  data-max="55000"  onclick="toggleBudget(this)">ETB 36k – 55k</button>
+      <button class="budget-btn" data-min="56000"  data-max="75000"  onclick="toggleBudget(this)">ETB 56k – 75k</button>
+      <button class="budget-btn" data-min="76000"  data-max="100000" onclick="toggleBudget(this)">ETB 76k – 100k</button>
+      <button class="budget-btn" data-min="101000" data-max="125000" onclick="toggleBudget(this)">ETB 101k – 125k</button>
     </div>
   </div>
   <button class="apply-btn" onclick="applyFilters()">Show matching laptops →</button>
@@ -685,7 +700,7 @@ const PRODUCTS=[
   {id:12,brand:'Dell',name:'Inspiron 15 3520',ram:8,storage:256,gpu:0,cpu:1,price:48000,hot:false,freeInCities:['Addis Ababa','Dire Dawa','Bahir Dar','Adama'],img:'black',specs:{Display:'15.6" FHD 120Hz',CPU:'Intel i5-1235U',RAM:'8GB DDR4',Storage:'256GB NVMe',GPU:'Intel UHD',Battery:'54Wh, ~9h'}},
 ]
 
-let state={city:null,dept:null,apps:[],minReqs:null,filtered:[],currentProduct:null}
+let state={city:null,dept:null,apps:[],minReqs:null,filtered:[],currentProduct:null,budget:null}
 
 function laptopSVG(color,size=90){
   const fills={silver:'#C8C8CC',space:'#2C2C30',black:'#1A1A1F',white:'#F5F5F5',blue:'#2563EB',gold:'#B8860B'}
@@ -770,9 +785,21 @@ function appScorePct(laptop,app){
   s+=laptop.gpu>=req.gpu?0.2:laptop.gpu>0?0.1:0
   return Math.min(1,s)
 }
+function toggleBudget(el){
+  const min=parseInt(el.dataset.min),max=parseInt(el.dataset.max)
+  if(state.budget&&state.budget.min===min&&state.budget.max===max){
+    state.budget=null;el.classList.remove('active')
+  } else {
+    state.budget={min,max}
+    document.querySelectorAll('.budget-btn').forEach(b=>b.classList.remove('active'))
+    el.classList.add('active')
+  }
+}
 function applyFilters(){
   state.minReqs=computeMinReqs()
-  const scored=PRODUCTS.map(p=>({...p,...scoreLaptop(p,state.minReqs)}))
+  let pool=PRODUCTS
+  if(state.budget) pool=pool.filter(p=>p.price>=state.budget.min&&p.price<=state.budget.max)
+  const scored=pool.map(p=>({...p,...scoreLaptop(p,state.minReqs)}))
   scored.sort((a,b)=>b.score-a.score)
   state.filtered=scored
   document.getElementById('filterPanel').classList.remove('open')

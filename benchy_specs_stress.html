@@ -1,0 +1,483 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f7f5;
+  --card:#ffffff;
+  --border:#e9e9e6;
+  --border2:#f0f0ee;
+  --text:#111;
+  --muted:#999;
+  --faint:#c8c8c4;
+  --orange:#FF6B00;
+  --green:#16A34A;
+  --red:#EF4444;
+  --amber:#D97706;
+  --blue:#2563EB;
+  --purple:#7C3AED;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Space Grotesk',sans-serif;
+}
+.app{
+  font-family:var(--sans);
+  background:var(--bg);
+  background-image:radial-gradient(circle,#d8d8d4 1px,transparent 1px);
+  background-size:22px 22px;
+  min-height:640px;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 20px;background:rgba(247,247,245,.95);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(10px);
+}
+.logo{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--text)}
+.logo em{color:var(--orange);font-style:normal}
+.topbar-right{display:flex;gap:6px;align-items:center}
+.chip{
+  padding:4px 12px;border-radius:5px;border:1px solid var(--border);
+  font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;background:var(--card);color:var(--muted);transition:all .15s;
+}
+.chip:hover{border-color:#bbb;color:var(--text)}
+.chip.active{background:var(--text);color:#fff;border-color:var(--text)}
+.chip.danger{background:var(--red);color:#fff;border-color:var(--red)}
+
+.body{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100% - 44px)}
+.panel{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.panel.left{border-right:1px solid var(--border)}
+
+.section-eyebrow{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+
+.spec-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.spec-item{padding:9px 10px;border-bottom:1px solid var(--border2)}
+.spec-item:nth-child(odd){border-right:1px solid var(--border2)}
+.spec-item:nth-last-child(-n+2){border-bottom:none}
+.spec-k{font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:2px}
+.spec-v{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);line-height:1.2}
+.spec-v.accent{color:var(--orange)}
+.spec-v.good{color:var(--green)}
+.spec-v.warn{color:var(--amber)}
+.spec-v.bad{color:var(--red)}
+
+.verdict-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+.verdict-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.verdict-text h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.verdict-text p{font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.5}
+
+.upgrade-list{display:flex;flex-direction:column;gap:4px}
+.upgrade-item{display:flex;align-items:flex-start;gap:7px;padding:7px 10px;border-radius:7px;font-family:var(--mono);font-size:9px;line-height:1.4}
+.upgrade-item.good{background:#F0FDF4;color:#166534;border:1px solid #BBF7D0}
+.upgrade-item.warn{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+.upgrade-item.bad{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+.upgrade-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:2px}
+
+.stress-area{display:flex;flex-direction:column;gap:10px}
+.donuts-row{display:flex;justify-content:space-around;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 10px}
+.donut-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.donut-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.donut-val{font-family:var(--mono);font-size:11px;font-weight:700}
+
+.stress-log{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;flex:1}
+.log-head{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.log-pulse{width:5px;height:5px;border-radius:50%;background:var(--orange);animation:lp 1.2s ease-in-out infinite}
+@keyframes lp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+.log-lines{display:flex;flex-direction:column;gap:3px}
+.log-line{font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.log-time{color:var(--faint);flex-shrink:0;width:36px}
+.log-line.hi{color:var(--text)}
+.log-line.alert{color:var(--red)}
+.log-line.good{color:var(--green)}
+
+.mini-chart{height:40px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;overflow:hidden}
+
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.result-tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.result-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+.result-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)}
+.result-sub{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px}
+
+.stress-cta{display:flex;gap:6px;align-items:center}
+.run-btn{
+  padding:9px 18px;border-radius:7px;border:none;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;background:var(--text);color:#fff;transition:all .2s;flex:1;
+}
+.run-btn:hover:not(:disabled){background:#333;transform:translateY(-1px)}
+.run-btn:disabled{background:#ddd;color:#bbb;cursor:not-allowed;transform:none}
+.run-btn.running{background:var(--orange);animation:pulse-btn 1.5s ease-in-out infinite}
+@keyframes pulse-btn{0%,100%{opacity:1}50%{opacity:.8}}
+.dur-sel{padding:8px 10px;border-radius:7px;border:1px solid var(--border);font-family:var(--mono);font-size:9px;background:var(--card);color:var(--muted);cursor:pointer}
+
+@keyframes fillDonut{from{stroke-dashoffset:var(--full)}to{stroke-dashoffset:var(--target)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease forwards}
+</style>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="logo">BENCH<em>Y</em></div>
+    <div class="topbar-right">
+      <span id="hostname-chip" style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:5px">studio-pro</span>
+      <button class="chip" id="stop-btn" style="display:none" onclick="stopStress()">stop</button>
+      <button class="chip active" id="run-btn" onclick="startStress()">run benchmark</button>
+    </div>
+  </div>
+  <div class="body">
+    <div class="panel left" id="left-panel"></div>
+    <div class="panel" id="right-panel"></div>
+  </div>
+</div>
+
+<script>
+const SNAP = {
+  host:'studio-pro',os:'macOS 15.4 Sequoia',
+  cpu:{brand:'Apple M3 Pro',cores_p:12,cores_l:12,freq:3700,arch:'ARM64',temp:47.2},
+  ram:{total:36,used:14.7,pct:40.8},
+  disk:{name:'Apple SSD AP2048Z',kind:'NVMe SSD',total:2000,used:843,pct:42.2,health:'Good',score:96},
+  gpu:{name:'Apple M3 Pro GPU',vram:18,kind:'Integrated (Metal)'},
+  screen:{res:'3456×2234',size:'14.2"',hz:120},
+  score:{cpu:7840,ram:9000,disk:9200,gpu:5000,overall:7760,rating:'Good'}
+};
+
+const UPGRADES = [
+  {level:'good',text:'RAM: 36 GB unified — excellent for pro workloads'},
+  {level:'good',text:'Storage: NVMe SSD 2 TB — fast and spacious'},
+  {level:'warn',text:'GPU: integrated only — no dedicated VRAM for 3D/ML'},
+  {level:'good',text:'Display: 120 Hz ProMotion — sharp and fluid'},
+  {level:'warn',text:'Ports: limited I/O — may need hub for peripherals'},
+];
+
+let running=false,samples=[],elapsed=0,timer=null,logLines=[];
+let donutTargets={cpu:0,ram:0,disk:0,gpu:0};
+let donutCurrent={cpu:0,ram:0,disk:0,gpu:0};
+let stressResult=null;
+let donutAnim=null;
+
+const f1=n=>n.toFixed(1);
+const f0=n=>Math.round(n).toString();
+
+function donutSVG(id,pct,color,size=72,label='',val=''){
+  const r=size/2-7,circ=2*Math.PI*r,offset=circ*(1-pct/100);
+  const cx=size/2,cy=size/2;
+  return `<div class="donut-wrap">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f0f0f0" stroke-width="5.5"/>
+      <circle id="dc-${id}" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="5.5"
+        stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+        stroke-linecap="round" style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)"/>
+    </svg>
+    <div class="donut-val" id="dv-${id}" style="color:${color};position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px">—</div>
+    <div class="donut-lbl">${label}</div>
+  </div>`;
+}
+
+function scoreArcSVG(score,size=88){
+  const r=size/2-9,cx=size/2,cy=size/2;
+  const sA=-225*(Math.PI/180),sw=270*(Math.PI/180);
+  const ap=a=>`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`;
+  const arc=(s,e)=>{const l=e-s>Math.PI?1:0;return `M ${ap(s)} A ${r} ${r} 0 ${l} 1 ${ap(e)}`;};
+  const col=score>=8000?'#16A34A':score>=6000?'#FF6B00':score>=4000?'#D97706':'#EF4444';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" id="score-arc">
+    <path d="${arc(sA,sA+sw)}" fill="none" stroke="#f0f0f0" stroke-width="6" stroke-linecap="round"/>
+    <path d="${arc(sA,sA)}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" id="score-arc-fill"/>
+    <text x="${cx}" y="${cy+2}" text-anchor="middle" fill="${col}" font-family="JetBrains Mono" font-weight="700" font-size="16" id="score-num">—</text>
+    <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#ccc" font-family="JetBrains Mono" font-size="7">/10000</text>
+  </svg>`;
+}
+
+function sparkSVG(data,w=220,h=34,col='#FF6B00'){
+  if(data.length<2)return `<svg width="${w}" height="${h}"><text x="${w/2}" y="${h/2}" fill="#ddd" font-family="JetBrains Mono" font-size="9" text-anchor="middle">run a benchmark first</text></svg>`;
+  const max=Math.max(...data,100);
+  const pts=data.map((v,i)=>{const x=(i/(data.length-1))*w,y=h-(v/max)*(h-4)-2;return `${x},${y}`;}).join(' ');
+  const area=`${pts} ${w},${h} 0,${h}`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block">
+    <polygon points="${area}" fill="${col}18"/>
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function renderLeft(){
+  const {cpu,ram,disk,gpu,screen,os,score} = SNAP;
+  const verdict = score.overall>=8000?{icon:'★',bg:'#F0FDF4',txt:'Ready to sell at a premium. High-performing across all specs.',c:'#166534'}
+    :score.overall>=6000?{icon:'◆',bg:'#FFF7ED',txt:'Solid daily driver. Worth upgrading GPU for creative work.',c:'#92400E'}
+    :{icon:'▲',bg:'#FEF2F2',txt:'Ageing. Consider RAM or storage upgrade before selling.',c:'#991B1B'};
+
+  document.getElementById('left-panel').innerHTML=`
+  <div class="section-eyebrow">System specs</div>
+
+  <div class="spec-card">
+    <div class="spec-grid">
+      <div class="spec-item">
+        <div class="spec-k">Processor</div>
+        <div class="spec-v" style="font-size:10px">${cpu.brand}</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">Architecture</div>
+        <div class="spec-v">${cpu.arch} · ${cpu.cores_p}C</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">Memory</div>
+        <div class="spec-v accent">${ram.total} GB unified</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">Storage</div>
+        <div class="spec-v good">${disk.kind} ${disk.total} GB</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">GPU</div>
+        <div class="spec-v" style="font-size:10px">${gpu.name}</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">VRAM</div>
+        <div class="spec-v warn">${gpu.vram} GB shared</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">Display</div>
+        <div class="spec-v">${screen.size} · ${screen.hz} Hz</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-k">Resolution</div>
+        <div class="spec-v" style="font-size:10px">${screen.res}</div>
+      </div>
+      <div class="spec-item" style="grid-column:span 2;border-right:none">
+        <div class="spec-k">OS</div>
+        <div class="spec-v" style="font-size:10px;font-weight:600">${os}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict-bar" style="background:${verdict.bg};border-color:${verdict.c}33">
+    <div class="verdict-icon" style="background:${verdict.c}18;color:${verdict.c};font-family:var(--mono);font-weight:700">${verdict.icon}</div>
+    <div class="verdict-text">
+      <h3 style="color:${verdict.c}">${score.rating} machine</h3>
+      <p>${verdict.txt}</p>
+    </div>
+    <div style="margin-left:auto;flex-shrink:0">${scoreArcSVG(score.overall,80)}</div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-top:2px">Buy / sell notes</div>
+  <div class="upgrade-list">
+    ${UPGRADES.map(u=>`
+    <div class="upgrade-item ${u.level}">
+      <div class="upgrade-dot" style="background:${u.level==='good'?'#16A34A':u.level==='warn'?'#D97706':'#EF4444'}"></div>
+      ${u.text}
+    </div>`).join('')}
+  </div>`;
+
+  setTimeout(()=>animateScoreArc(score.overall),400);
+}
+
+function animateScoreArc(score){
+  const el=document.getElementById('score-arc-fill');
+  const numEl=document.getElementById('score-num');
+  if(!el)return;
+  const r=36,circ=2*Math.PI*r;
+  const sA=-225*(Math.PI/180),sw=270*(Math.PI/180);
+  const cx=44,cy=44;
+  const ap=a=>`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`;
+  const arc=(s,e)=>{const l=e-s>Math.PI?1:0;return `M ${ap(s)} A ${r} ${r} 0 ${l} 1 ${ap(e)}`;};
+  const col=score>=8000?'#16A34A':score>=6000?'#FF6B00':score>=4000?'#D97706':'#EF4444';
+  let start=null;
+  const dur=1400;
+  function step(ts){
+    if(!start)start=ts;
+    const p=Math.min((ts-start)/dur,1);
+    const ease=1-Math.pow(1-p,3);
+    const cur=score*ease;
+    const fgE=sA+sw*(cur/10000);
+    el.setAttribute('d',arc(sA,fgE));
+    el.setAttribute('stroke',col);
+    if(numEl)numEl.textContent=Math.round(cur).toString();
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function renderRight(){
+  document.getElementById('right-panel').innerHTML=`
+  <div class="section-eyebrow">Benchmark</div>
+
+  <div class="donuts-row">
+    ${donutSVG('cpu',0,'#FF6B00',72,'CPU','—')}
+    ${donutSVG('ram',0,'#7C3AED',72,'RAM','—')}
+    ${donutSVG('disk',0,'#16A34A',72,'Disk','—')}
+    ${donutSVG('gpu',0,'#2563EB',72,'GPU','—')}
+  </div>
+
+  <div class="stress-log">
+    <div class="log-head" id="log-head">
+      <span>Run log</span>
+    </div>
+    <div class="log-lines" id="log-lines">
+      <div class="log-line" style="color:var(--faint)">Press "run benchmark" to start a full system test.</div>
+    </div>
+  </div>
+
+  <div id="chart-wrap" class="mini-chart">
+    ${sparkSVG([],224,36)}
+  </div>
+
+  <div class="results-grid" id="results-grid">
+    <div class="result-tile"><div class="result-lbl">CPU score</div><div class="result-val" id="r-cpu">—</div><div class="result-sub">multi-core</div></div>
+    <div class="result-tile"><div class="result-lbl">RAM score</div><div class="result-val" id="r-ram">—</div><div class="result-sub">${SNAP.ram.total} GB unified</div></div>
+    <div class="result-tile"><div class="result-lbl">Disk score</div><div class="result-val" id="r-disk">—</div><div class="result-sub">seq read/write</div></div>
+    <div class="result-tile"><div class="result-lbl">Peak temp</div><div class="result-val" id="r-temp">—</div><div class="result-sub">during stress</div></div>
+  </div>
+
+  <div class="stress-cta">
+    <button class="run-btn" id="run-main-btn" onclick="startStress()">⚡ run full benchmark</button>
+    <select class="dur-sel" id="dur-sel">
+      <option value="20">20s</option>
+      <option value="40" selected>40s</option>
+      <option value="60">60s</option>
+    </select>
+  </div>`;
+}
+
+function addLog(msg,cls=''){
+  logLines=[...logLines.slice(-8),{t:elapsed,msg,cls}];
+  const el=document.getElementById('log-lines');
+  if(!el)return;
+  el.innerHTML=logLines.map(l=>`<div class="log-line ${l.cls}"><span class="log-time">${l.t}s</span>${l.msg}</div>`).join('');
+}
+
+function animateDonut(id,targetPct,color,valText){
+  const el=document.getElementById(`dc-${id}`);
+  const vEl=document.getElementById(`dv-${id}`);
+  if(!el)return;
+  const r=29,circ=2*Math.PI*r;
+  let start=null,from=donutCurrent[id]||0;
+  const dur=1000;
+  function step(ts){
+    if(!start)start=ts;
+    const p=Math.min((ts-start)/dur,1);
+    const ease=1-Math.pow(1-p,3);
+    const cur=from+(targetPct-from)*ease;
+    el.style.strokeDashoffset=circ*(1-cur/100);
+    if(vEl)vEl.textContent=valText||(Math.round(cur)+'%');
+    if(p<1)requestAnimationFrame(step);
+    else{donutCurrent[id]=targetPct;}
+  }
+  requestAnimationFrame(step);
+}
+
+let cpuSamples=[];
+
+async function startStress(){
+  if(running)return;
+  running=true;elapsed=0;samples=[];cpuSamples=[];logLines=[];stressResult=null;
+
+  document.getElementById('run-main-btn').textContent='running…';
+  document.getElementById('run-main-btn').classList.add('running');
+  document.getElementById('run-main-btn').disabled=true;
+  document.getElementById('run-btn').style.display='none';
+  document.getElementById('stop-btn').style.display='block';
+
+  const lh=document.getElementById('log-head');
+  if(lh)lh.innerHTML=`<div class="log-pulse"></div><span>Live log</span>`;
+
+  addLog('initialising benchmark suite…','hi');
+  const dur=parseInt(document.getElementById('dur-sel').value)||40;
+
+  const stepsPerSec=2;
+  const total=dur*stepsPerSec;
+  let step=0;
+  let peakTemp=47;
+  let peakUsage=0;
+
+  timer=setInterval(()=>{
+    if(!running){clearInterval(timer);return;}
+    step++;elapsed=Math.round(step/stepsPerSec);
+    const pct=step/total;
+
+    const cpuU=70+Math.random()*28;
+    const temp=55+pct*25+Math.random()*8;
+    peakTemp=Math.max(peakTemp,temp);
+    peakUsage=Math.max(peakUsage,cpuU);
+    cpuSamples.push(cpuU);
+
+    animateDonut('cpu',Math.min(cpuU,99),'#FF6B00',Math.round(cpuU)+'%');
+    animateDonut('ram',40+Math.random()*10,'#7C3AED','14.7 GB');
+
+    if(step===4)addLog('cpu stress: all cores pinned','hi');
+    if(step===8){addLog('thermal: '+f1(temp)+'°C — nominal','good');animateDonut('disk',65+Math.random()*20,'#16A34A','4.1 GB/s');}
+    if(step===14)addLog('memory bandwidth saturated','');
+    if(step===20){addLog('gpu compute load applied','');animateDonut('gpu',55+Math.random()*30,'#2563EB',Math.round(55+Math.random()*30)+'%');}
+    if(temp>72&&step%4===0)addLog('thermal: '+f1(temp)+'°C','warn');
+    if(step%6===0)addLog('cpu: '+f1(cpuU)+'%  temp: '+f1(temp)+'°C','');
+
+    const cw=document.getElementById('chart-wrap');
+    if(cw)cw.innerHTML=sparkSVG(cpuSamples.slice(-40),224,36,'#FF6B00');
+
+    if(step>=total){
+      clearInterval(timer);
+      finishStress(peakTemp,peakUsage,dur);
+    }
+  },1000/stepsPerSec);
+}
+
+function finishStress(peakTemp,peakUsage,dur){
+  running=false;
+  const throttled=peakTemp>85;
+  const cpuScore=SNAP.score.cpu;
+  const ramScore=SNAP.score.ram;
+  const diskScore=SNAP.score.disk;
+  const gpuScore=SNAP.score.gpu;
+
+  stressResult={cpuScore,ramScore,diskScore,gpuScore,peakTemp,peakUsage,throttled,dur};
+
+  addLog('benchmark complete','good');
+  if(throttled)addLog('thermal throttling detected — check cooling','alert');
+  else addLog('no throttling — cooling is healthy','good');
+
+  animateDonut('cpu',(cpuScore/10000)*100,'#FF6B00',cpuScore.toString());
+  animateDonut('ram',(ramScore/10000)*100,'#7C3AED',ramScore.toString());
+  animateDonut('disk',(diskScore/10000)*100,'#16A34A',diskScore.toString());
+  animateDonut('gpu',(gpuScore/10000)*100,'#2563EB',gpuScore.toString());
+
+  const col=peakTemp>85?'var(--red)':peakTemp>70?'var(--amber)':'var(--green)';
+  setTimeout(()=>{
+    const rc=document.getElementById('r-cpu');const rr=document.getElementById('r-ram');
+    const rd=document.getElementById('r-disk');const rt=document.getElementById('r-temp');
+    if(rc)rc.textContent=cpuScore;if(rr)rr.textContent=ramScore;
+    if(rd)rd.textContent=diskScore;
+    if(rt){rt.textContent=f1(peakTemp)+'°C';rt.style.color=col;}
+    document.getElementById('results-grid').classList.add('fade-in');
+  },800);
+
+  document.getElementById('run-main-btn').textContent='⟳ run again';
+  document.getElementById('run-main-btn').classList.remove('running');
+  document.getElementById('run-main-btn').disabled=false;
+  document.getElementById('run-main-btn').onclick=resetAndRun;
+  document.getElementById('run-btn').textContent='run again';
+  document.getElementById('run-btn').style.display='block';
+  document.getElementById('run-btn').onclick=resetAndRun;
+  document.getElementById('stop-btn').style.display='none';
+  const lh=document.getElementById('log-head');
+  if(lh)lh.innerHTML=`<span>Complete</span>`;
+}
+
+function stopStress(){
+  running=false;clearInterval(timer);
+  document.getElementById('run-main-btn').textContent='⚡ run full benchmark';
+  document.getElementById('run-main-btn').classList.remove('running');
+  document.getElementById('run-main-btn').disabled=false;
+  document.getElementById('run-main-btn').onclick=startStress;
+  document.getElementById('run-btn').style.display='block';
+  document.getElementById('stop-btn').style.display='none';
+  addLog('test stopped by user','warn');
+  const lh=document.getElementById('log-head');
+  if(lh)lh.innerHTML=`<span>Stopped</span>`;
+}
+
+function resetAndRun(){
+  document.getElementById('run-main-btn').onclick=startStress;
+  document.getElementById('run-btn').onclick=startStress;
+  startStress();
+}
+
+renderLeft();
+renderRight();
+</script>
